@@ -3,41 +3,12 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Union, Generator
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-from logger import logger
-from scrapers import ShopItem
+from app.logger import logger
+from app.scrapers.alza import ShopItem
 from webdriver import WebDriverManager
-from exceptions import ErrorParsing, OutOfStockException
+from app.exceptions import ErrorParsing, OutOfStockException
 
-
-class EmailNotifierInterface:
-    def __init__(
-        self,
-        smtp_server: str,
-        port: int,
-        sender_email: str,
-        password: str,
-        receiver_email: str,
-    ) -> None:
-        self.smtp_server = smtp_server
-        self.port = port
-        self.sender_email = sender_email
-        self.password = password
-        self.receiver_email = receiver_email
-
-    def send_email(self, subject: str, body: str) -> None:
-        message = MIMEMultipart()
-        message["From"] = self.sender_email
-        message["To"] = self.receiver_email
-        message["Subject"] = subject
-        message.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP_SSL(self.smtp_server, self.port) as server:
-            server.login(self.sender_email, self.password)
-            server.sendmail(self.sender_email, self.receiver_email, message.as_string())
+from app.services import EmailNotifierInterface
 
 
 @dataclass(frozen=True)
