@@ -1,30 +1,31 @@
+from app.config import cnfg
 from app.logger import logger
+from app.utils import get_links_from_csv
 from app.scrapers.alza import AlzaItem
 from app.services import EmailNotifierInterface, PriceTracker
+
 
 def main():
     logger.setLevel("INFO")
 
-    notifier = EmailNotifierInterface()
+    notifier = EmailNotifierInterface(
+        smtp_server=cnfg.Email.SMTP_SERVER,
+        smtp_port=cnfg.Email.SMTP_PORT,
+        smtp_password=cnfg.Email.SMTP_PASSWORD,
+        sender_email=cnfg.Email.SENDER_EMAIL,
+        receiver_email=cnfg.Email.RECEIVER_EMAIL
+    )
 
     tracker = PriceTracker(notifier=notifier)
 
-    url_1 = "https://www.alza.cz/iphone-15-pro?dq=7927758"  # out of stock
-    url_2 = "https://www.alza.cz/iphone-15-pro-1tb-bily-titan-d7927767.htm"
+    links = get_links_from_csv(cnfg.FILE_LINKS_PATH)
+    for link in links:
+        item = AlzaItem(link)
+        tracker.add_item(item)
 
-    item_1 = AlzaItem(url_1)
-    item_2 = AlzaItem(url_2)
+    for idx, price in enumerate(tracker.track_periodically(period=cnfg.PERIOD_TRACKING)):
+        logger.info(f"Cycle {idx+1}: {price}")
 
-    tracker.add_item(item_1)
-    tracker.add_item(item_2)
-
-    idx_break = 2
-    for price in tracker.track_periodically(period=10):
-        logger.info(price)
-
-        idx_break -= 1
-        if idx_break == 0:
-            break
 
 if __name__ == "__main__":
     main()
