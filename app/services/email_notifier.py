@@ -7,15 +7,15 @@ class EmailNotifierInterface:
     def __init__(
         self,
         smtp_server: str,
-        port: int,
+        smtp_port: int,
         sender_email: str,
-        password: str,
+        smtp_password: str,
         receiver_email: str,
     ) -> None:
         self.smtp_server = smtp_server
-        self.port = port
+        self.port = smtp_port
         self.sender_email = sender_email
-        self.password = password
+        self.password = smtp_password
         self.receiver_email = receiver_email
 
     def send_email(self, subject: str, body: str) -> None:
